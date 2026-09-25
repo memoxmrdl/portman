@@ -1,0 +1,50 @@
+<main>
+  <h1>Portfolio rebalance</h1>
+
+  <% if @error.present? %>
+    <p class="error"><%= @error %></p>
+  <% end %>
+
+  <%= form_with url: "/rebalance", method: :post do %>
+    <% @positions.each do |position| %>
+      <fieldset>
+        <label>
+          Ticker
+          <%= text_field_tag "positions[][ticker]", position[:ticker] %>
+        </label>
+        <label>
+          Quantity
+          <%= number_field_tag "positions[][quantity]", position[:quantity], step: :any %>
+        </label>
+        <label>
+          Price
+          <%= number_field_tag "positions[][price]", position[:price], step: :any %>
+        </label>
+        <label>
+          Target
+          <%= number_field_tag "positions[][target]", position[:target], step: :any %>
+        </label>
+      </fieldset>
+    <% end %>
+
+    <%= submit_tag "Rebalance" %>
+  <% end %>
+
+  <% if @plan %>
+    <section class="plan">
+      <h2>Recommended plan</h2>
+      <% @plan.instructions.each do |instruction| %>
+        <p class="instruction"><%= instruction.side %> <%= format_quantity(instruction.quantity) %> <%= instruction.ticker %></p>
+      <% end %>
+    </section>
+  <% end %>
+
+  <% if @holdings %>
+    <section class="holdings">
+      <h2>Holdings</h2>
+      <% @holdings.each do |holding| %>
+        <p class="holding"><%= holding.ticker %> <%= format_quantity(holding.quantity) %></p>
+      <% end %>
+    </section>
+  <% end %>
+</main>
