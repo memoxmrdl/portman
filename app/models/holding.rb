@@ -3,7 +3,7 @@ class Holding
 
   def initialize(stock, quantity)
     @stock = stock
-    @quantity = quantity.is_a?(Float) ? Rational(quantity.to_s) : quantity.to_r
+    @quantity = ExactNumber.from(quantity)
   end
 
   def ticker

@@ -58,6 +58,17 @@ suman 100, se muestra el error "Invalid allocation" y no se genera plan.
   redondeo.
 - **Falla cerrada:** si alguna acción no tiene precio válido, falla todo el
   rebalanceo; no se omite ni se inventa un precio.
+- **Coerción numérica exacta:** `ExactNumber.from` centraliza la conversión de
+  cualquier valor a `Rational`, incluyendo `Float` a través de su
+  representación decimal (`to_s`) para evitar el redondeo binario de punto
+  flotante. La usan `Stock`, `Portfolio`, `Holding` y `TargetAllocation`.
+- **`PortfolioForm` coordina el request:** parsea las posiciones enviadas
+  (`params.expect`), coerciona cada campo con su propio `DomainError`
+  (precio, cantidad o asignación) y arma el `Portfolio`. El controlador solo
+  coordina la llamada y renderiza la vista.
+- **Mensajes de error vía I18n:** los textos de error salen de
+  `config/locales/en.yml` (`domain_errors.*`) en vez de derivarse del nombre
+  de la clase, con un mensaje por defecto para errores no mapeados.
 
 ## Por qué no se necesita Postgres
 

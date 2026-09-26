@@ -3,7 +3,7 @@ class TargetAllocation
 
   def initialize(stock, weight)
     @stock = stock
-    @weight = weight.is_a?(Float) ? Rational(weight.to_s) : weight.to_r
+    @weight = ExactNumber.from(weight)
   end
 
   def ticker

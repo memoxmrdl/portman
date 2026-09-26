@@ -51,4 +51,30 @@ class PortfoliosRebalanceTest < ActionDispatch::IntegrationTest
     assert_select ".plan", count: 0
     assert_select ".instruction", count: 0
   end
+
+  test "POST /rebalance with an invalid price shows a price error, not a quantity error" do
+    post "/rebalance", params: {
+      positions: [
+        { ticker: "META", quantity: "50", price: "not-a-number", target: "40" },
+        { ticker: "APPL", quantity: "50", price: "10", target: "60" }
+      ]
+    }
+
+    assert_response :success
+    assert_select "p.error", text: /invalid price/i
+    assert_select ".plan", count: 0
+  end
+
+  test "POST /rebalance with an invalid target shows an allocation error, not a quantity error" do
+    post "/rebalance", params: {
+      positions: [
+        { ticker: "META", quantity: "50", price: "10", target: "not-a-number" },
+        { ticker: "APPL", quantity: "50", price: "10", target: "60" }
+      ]
+    }
+
+    assert_response :success
+    assert_select "p.error", text: /invalid allocation/i
+    assert_select ".plan", count: 0
+  end
 end

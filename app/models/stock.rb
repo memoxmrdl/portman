@@ -24,11 +24,7 @@ class Stock
     raise DomainError::InvalidPrice if value.is_a?(String) && value.strip.empty?
     raise DomainError::InvalidPrice unless value.is_a?(Numeric)
 
-    rational = if value.is_a?(Float)
-      Rational(value.to_s)
-    else
-      value.to_r
-    end
+    rational = ExactNumber.from(value)
     raise DomainError::InvalidPrice unless rational.positive?
 
     rational

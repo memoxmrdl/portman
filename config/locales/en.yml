@@ -29,3 +29,12 @@
 
 en:
   hello: "Hello world"
+  domain_errors:
+    default: "Something went wrong"
+    invalid_ticker: "Invalid ticker"
+    invalid_price: "Invalid price"
+    invalid_quantity: "Invalid quantity"
+    duplicate_ticker: "Duplicate ticker"
+    invalid_allocation: "Invalid allocation"
+    unpriced_instrument: "Unpriced instrument"
+    non_positive_total: "Non positive total"

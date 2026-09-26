@@ -68,15 +68,26 @@ class Portfolio
     raise DomainError::InvalidAllocation if @allocations.empty?
 
     tickers = (@holdings.keys | @allocations.keys).sort
-    prices = {}
-    tickers.each do |ticker|
+    prices = prices_for(tickers)
+    values, total = market_values(tickers, prices)
+
+    instructions = tickers.filter_map { |ticker| instruction_for(ticker, values[ticker], total, prices[ticker]) }
+    RebalancePlan.new(instructions)
+  end
+
+  private
+
+  def prices_for(tickers)
+    tickers.each_with_object({}) do |ticker, prices|
       stock = @registry.fetch(ticker)
       # Fail on missing price: every ticker in holdings ∪ targets must be priced.
       raise DomainError::UnpricedInstrument unless stock.priced?
 
       prices[ticker] = stock.last_available_price
     end
+  end
 
+  def market_values(tickers, prices)
     values = {}
     total = 0.to_r
     tickers.each do |ticker|
@@ -85,21 +96,19 @@ class Portfolio
     end
     raise DomainError::NonPositiveTotal unless total.positive?
 
-    instructions = tickers.filter_map do |ticker|
-      weight = @allocations[ticker]&.weight || 0.to_r
-      target_value = weight * total
-      # Rounding identity: applying every recommended fractional quantity makes value_i' = weight * total with leftover 0.
-      qty_delta = (target_value - values[ticker]) / prices[ticker]
-      next if qty_delta.zero?
-
-      side = qty_delta.positive? ? :buy : :sell
-      RebalancePlan::Instruction.new(ticker: ticker, side: side, quantity: qty_delta.abs)
-    end
-
-    RebalancePlan.new(instructions)
+    [ values, total ]
   end
 
-  private
+  def instruction_for(ticker, value, total, price)
+    weight = @allocations[ticker]&.weight || 0.to_r
+    target_value = weight * total
+    # Rounding identity: applying every recommended fractional quantity makes value_i' = weight * total with leftover 0.
+    qty_delta = (target_value - value) / price
+    return nil if qty_delta.zero?
+
+    side = qty_delta.positive? ? :buy : :sell
+    RebalancePlan::Instruction.new(ticker: ticker, side: side, quantity: qty_delta.abs)
+  end
 
   def register!(stock)
     existing = @registry[stock.ticker]
@@ -111,6 +120,6 @@ class Portfolio
   def coerce_rational(value, error:)
     raise error unless value.is_a?(Numeric)
 
-    value.is_a?(Float) ? Rational(value.to_s) : value.to_r
+    ExactNumber.from(value)
   end
 end
